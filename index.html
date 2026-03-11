@@ -6,139 +6,135 @@
   <title>Generación de Fe · Misiones</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'DM Sans', 'Segoe UI', sans-serif;
-      background: #0f1117;
-      color: #e8eaf0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: #0f1117; color: #e8eaf0;
+      min-height: 100vh; display: flex; flex-direction: column;
     }
 
-    /* HEADER */
+    /* ── LOGIN ── */
+    #login-screen {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #login-box {
+      background: #131825; border: 1px solid #1e2435; border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 380px; text-align: center;
+    }
+    #login-logo {
+      width: 64px; height: 64px; border-radius: 16px; object-fit: contain;
+      margin: 0 auto 16px;
+    }
+    #login-logo-fallback {
+      width: 64px; height: 64px; border-radius: 16px;
+      background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+      display: none; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 16px;
+    }
+    #login-box h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    #login-box p  { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+
+    #login-box label {
+      display: block; text-align: left; font-size: 12px;
+      color: #9ca3af; margin-bottom: 6px; font-weight: 600;
+    }
+    #login-box input {
+      width: 100%; background: #0f1117; border: 1px solid #2a3048;
+      border-radius: 10px; padding: 10px 14px; color: #e8eaf0;
+      font-size: 14px; outline: none; margin-bottom: 16px;
+      transition: border 0.2s;
+    }
+    #login-box input:focus { border-color: #4f8ef7; }
+    #login-btn {
+      width: 100%; background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+      border: none; border-radius: 10px; padding: 11px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    #login-btn:hover { opacity: 0.88; }
+    #login-error {
+      margin-top: 14px; font-size: 13px; color: #f87171;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 8px 12px; display: none;
+    }
+
+    /* ── HEADER ── */
     #header {
       background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
       border-bottom: 1px solid #1e2435;
       padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      flex-shrink: 0;
+      display: none; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; flex-shrink: 0;
     }
     #header-left { display: flex; align-items: center; gap: 12px; }
-    #logo {
-      width: 40px; height: 40px; border-radius: 10px; object-fit: contain;
+    #header-logo {
+      width: 36px; height: 36px; border-radius: 9px; object-fit: contain;
     }
-    #logo-fallback {
-      width: 40px; height: 40px; border-radius: 10px;
+    #header-logo-fallback {
+      width: 36px; height: 36px; border-radius: 9px;
       background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
-      display: none; align-items: center; justify-content: center;
-      font-size: 18px;
+      display: none; align-items: center; justify-content: center; font-size: 16px;
     }
-    #org-name { font-size: 17px; font-weight: 700; }
-    #org-sub  { font-size: 11px; color: #6b7280; margin-top: 1px; }
-    #header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    #demo-badge {
-      background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
-      border-radius: 8px; padding: 4px 11px; font-size: 11px; color: #fbbf24; display: none;
+    #org-name { font-size: 16px; font-weight: 700; }
+    #org-sub  { font-size: 11px; color: #6b7280; }
+    #mission-pill {
+      background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.35);
+      border-radius: 20px; padding: 4px 14px; font-size: 12px;
+      color: #4f8ef7; font-weight: 600;
     }
-    #alert-badge {
-      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
-      border-radius: 8px; padding: 4px 11px; font-size: 12px; color: #f87171;
-      font-weight: 600; display: none;
-    }
-    #search {
+    #logout-btn {
       background: #1a1f2e; border: 1px solid #2a3048; border-radius: 8px;
-      padding: 6px 12px; color: #e8eaf0; font-size: 13px; outline: none; width: 155px;
+      padding: 5px 13px; color: #9ca3af; font-size: 12px; cursor: pointer;
+      transition: all 0.15s;
     }
+    #logout-btn:hover { color: #e8eaf0; border-color: #4f8ef7; }
 
-    /* LOADING */
+    /* ── LOADING ── */
     #loading {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; color: #6b7280; gap: 12px;
-      font-size: 15px;
+      flex: 1; display: none; flex-direction: column;
+      align-items: center; justify-content: center; color: #6b7280; gap: 12px; font-size: 15px;
     }
     #loading span { font-size: 32px; }
 
-    /* MAIN LAYOUT */
-    #main {
-      display: none; flex: 1; overflow: hidden;
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+
+    #demo-banner {
+      background: rgba(251,191,36,0.08); border-bottom: 1px solid rgba(251,191,36,0.2);
+      padding: 6px 24px; font-size: 12px; color: #fbbf24; display: none;
     }
 
-    /* LEFT PANEL */
-    #left {
-      width: 270px; min-width: 220px;
-      border-right: 1px solid #1e2435;
-      overflow-y: auto; padding: 12px; flex-shrink: 0;
-    }
-    .mission-card {
-      border-radius: 12px; padding: 11px 13px; margin-bottom: 6px;
-      cursor: pointer; background: #131825; border: 1px solid #1e2435;
-      transition: all 0.15s;
-    }
-    .mission-card:hover { border-color: #2a3560; }
-    .mission-card.selected {
-      background: linear-gradient(135deg, #1e2f52, #1a2545);
-      border-color: #4f8ef7;
-    }
-    .mission-card.alert-card { border-color: rgba(239,68,68,0.25); }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .card-name { font-weight: 600; font-size: 13px; }
-    .card-badge {
-      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
-      margin-left: 6px; white-space: nowrap;
-    }
-    .badge-ok   { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
-    .badge-warn { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-    .card-last  { font-size: 12px; color: #6b7280; margin-top: 4px; }
-    .card-count { font-size: 11px; color: #4b5568; margin-top: 2px; }
+    #dash-inner { flex: 1; overflow-y: auto; padding: 24px; }
 
-    /* RIGHT PANEL */
-    #right {
-      flex: 1; overflow-y: auto; padding: 22px 26px;
-    }
-    #placeholder {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; color: #4b5568; gap: 14px;
-    }
-    #placeholder span { font-size: 44px; }
-    #placeholder p    { font-size: 15px; }
-
-    #detail { display: none; }
-
-    #detail-header {
+    /* status card */
+    #status-card {
+      border-radius: 14px; padding: 18px 22px; margin-bottom: 20px;
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+      flex-wrap: wrap; gap: 12px;
     }
-    #detail-title { font-size: 22px; font-weight: 700; }
-    #detail-sub   { font-size: 12px; color: #6b7280; margin-top: 3px; }
-    #detail-status {
-      padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 700;
-    }
-    .status-ok   { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
-    .status-warn { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    #status-card.ok   { background: rgba(34,197,94,0.07);  border: 1px solid rgba(34,197,94,0.25); }
+    #status-card.warn { background: rgba(239,68,68,0.07);  border: 1px solid rgba(239,68,68,0.25); }
+    #status-label { font-size: 15px; font-weight: 700; }
+    #status-label.ok   { color: #4ade80; }
+    #status-label.warn { color: #f87171; }
+    #status-meta { font-size: 12px; color: #6b7280; margin-top: 3px; }
 
     /* KPI grid */
     #kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 10px; margin-bottom: 20px;
+      gap: 10px; margin-bottom: 22px;
     }
     .kpi-card {
       background: #131825; border: 1px solid #1e2435;
-      border-radius: 12px; padding: 13px 14px;
+      border-radius: 12px; padding: 14px;
     }
-    .kpi-icon  { font-size: 17px; margin-bottom: 5px; }
-    .kpi-value { font-size: 22px; font-weight: 700; }
+    .kpi-icon  { font-size: 18px; margin-bottom: 6px; }
+    .kpi-value { font-size: 24px; font-weight: 700; }
     .kpi-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
     .kpi-note  { font-size: 10px; color: #4b5568; }
 
-    /* History table */
+    /* History */
     #history-box {
       background: #131825; border: 1px solid #1e2435;
       border-radius: 14px; overflow: hidden;
@@ -147,10 +143,8 @@
       padding: 12px 18px; border-bottom: 1px solid #1e2435;
       font-size: 13px; font-weight: 600; color: #9ca3af;
     }
-    #history-empty {
-      padding: 40px; text-align: center; color: #6b7280;
-    }
-    #table-wrap { overflow-x: auto; }
+    #history-empty { padding: 40px; text-align: center; color: #6b7280; display: none; }
+    #table-wrap { overflow-x: auto; display: none; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
       padding: 9px 14px; background: #0f1117;
@@ -169,7 +163,6 @@
     }
     .decision-val { color: #fbbf24; font-weight: 600; }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a3048; border-radius: 4px; }
@@ -177,79 +170,95 @@
 </head>
 <body>
 
+<!-- LOGIN -->
+<div id="login-screen">
+  <div id="login-box">
+    <img id="login-logo" src="logo.png" alt="logo"
+         onerror="this.style.display='none'; document.getElementById('login-logo-fallback').style.display='flex'"/>
+    <div id="login-logo-fallback">🕊️</div>
+    <h1>Generación de Fe</h1>
+    <p>Ingresa la clave de tu misión para continuar</p>
+    <label>Clave de acceso</label>
+    <input id="pass-input" type="password" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter') doLogin()"/>
+    <button id="login-btn" onclick="doLogin()">Ingresar</button>
+    <div id="login-error">Clave incorrecta. Intenta nuevamente.</div>
+  </div>
+</div>
+
 <!-- HEADER -->
 <div id="header">
   <div id="header-left">
-    <img id="logo" src="logo.png" alt="Generación de Fe"
-         onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex'"/>
-    <div id="logo-fallback">🕊️</div>
+    <img id="header-logo" src="logo.png" alt="logo"
+         onerror="this.style.display='none'; document.getElementById('header-logo-fallback').style.display='flex'"/>
+    <div id="header-logo-fallback">🕊️</div>
     <div>
       <div id="org-name">Generación de Fe</div>
-      <div id="org-sub">Seguimiento de registros por misión</div>
+      <div id="org-sub">Registro de asistencia</div>
     </div>
   </div>
-  <div id="header-right">
-    <div id="demo-badge">📊 Vista previa · datos de ejemplo</div>
-    <div id="alert-badge"></div>
-    <input id="search" type="text" placeholder="Buscar misión..." oninput="renderList()"/>
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <div id="mission-pill"></div>
+    <button id="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </div>
 
 <!-- LOADING -->
 <div id="loading"><span>⏳</span> Cargando datos...</div>
 
-<!-- MAIN -->
-<div id="main">
-  <div id="left"></div>
-  <div id="right">
-    <div id="placeholder">
-      <span>👈</span>
-      <p>Selecciona una misión para ver su historial</p>
-    </div>
-    <div id="detail">
-      <div id="detail-header">
-        <div>
-          <div id="detail-title"></div>
-          <div id="detail-sub"></div>
-        </div>
-        <div id="detail-status"></div>
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div id="demo-banner">📊 Mostrando datos de ejemplo — conecta la hoja de Google para ver datos reales</div>
+  <div id="dash-inner">
+    <div id="status-card" class="ok">
+      <div>
+        <div id="status-label" class="ok"></div>
+        <div id="status-meta"></div>
       </div>
-      <div id="kpi-grid"></div>
-      <div id="history-box">
-        <div id="history-title">📋 Historial completo de registros</div>
-        <div id="history-empty" style="display:none">No hay registros para esta misión aún.</div>
-        <div id="table-wrap" style="display:none">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Adultos</th>
-                <th>Vis. Adultos</th>
-                <th>Niños</th>
-                <th>Vis. Niños</th>
-                <th>Dec. Fe</th>
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
-        </div>
+    </div>
+    <div id="kpi-grid"></div>
+    <div id="history-box">
+      <div id="history-title">📋 Historial completo de registros</div>
+      <div id="history-empty">No hay registros para esta misión aún.</div>
+      <div id="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Adultos</th><th>Vis. Adultos</th>
+              <th>Niños</th><th>Vis. Niños</th><th>Dec. Fe</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const SHEET_ID = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
-const SHEET_GID = "1575814348";
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-const ALERT_DAYS = 14;
-const MISSIONS = [
-  "La Florida","Huechuraba","San Bernardo","La Pintana",
-  "Padre Hurtado","Lican Ray","Mendoza","Bío Bío",
-  "Villa Alemana","Temuco","Chillán"
-];
+// ─────────────────────────────────────────
+// CLAVES POR MISIÓN — cambia estas claves antes de publicar
+// ─────────────────────────────────────────
+const MISSION_KEYS = {
+  "La Florida":    "florida348",
+  "Huechuraba":    "huechuraba117",
+  "San Bernardo":  "sanbernardo454",
+  "La Pintana":    "pintana511",
+  "Padre Hurtado": "hurtado443",
+  "Lican Ray":     "licanray108",
+  "Mendoza":       "mendoza281",
+  "Bío Bío":       "biobio451",
+  "Villa Alemana": "villaalemana265",
+  "Temuco":        "temuco452",
+  "Chillán":       "chillan939",
+};
 
-// Sample data for fallback
+const SHEET_ID  = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
+const SHEET_GID = "1575814348";
+const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const ALERT_DAYS = 14;
+
+// Sample fallback
 function dAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d; }
 const SAMPLE = {
   "La Florida":    [{date:dAgo(90),a:42,av:3,c:18,cv:2,df:1},{date:dAgo(76),a:45,av:4,c:20,cv:3,df:2},{date:dAgo(62),a:47,av:3,c:19,cv:1,df:0},{date:dAgo(48),a:53,av:6,c:24,cv:4,df:3},{date:dAgo(7),a:55,av:7,c:25,cv:3,df:2}],
@@ -265,9 +274,10 @@ const SAMPLE = {
   "Chillán":       [{date:dAgo(91),a:22,av:2,c:8,cv:1,df:0},{date:dAgo(68),a:24,av:2,c:9,cv:1,df:1},{date:dAgo(45),a:26,av:3,c:10,cv:2,df:0}],
 };
 
-let missionData = {};
-let selectedMission = null;
+let currentMission = null;
+let allData = {};
 
+// ─── HELPERS ───
 function parseDate(str) {
   if (!str) return null;
   const p = str.trim().split(/[-\/]/);
@@ -275,195 +285,154 @@ function parseDate(str) {
   const d = new Date(`${p[2]}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`);
   return isNaN(d) ? null : d;
 }
-
 function fmtDate(d) {
   if (!d) return "—";
   return d.toLocaleDateString("es-CL", { day:"2-digit", month:"short", year:"numeric" });
 }
-
 function daysSince(d) {
-  if (!d) return null;
-  return Math.floor((new Date() - d) / 86400000);
+  return d ? Math.floor((new Date() - d) / 86400000) : null;
+}
+function show(id, type="block") { document.getElementById(id).style.display = type; }
+function hide(id)               { document.getElementById(id).style.display = "none"; }
+
+// ─── LOGIN ───
+function doLogin() {
+  const val = document.getElementById("pass-input").value.trim();
+  const found = Object.entries(MISSION_KEYS).find(([, pwd]) => pwd === val);
+  if (!found) {
+    show("login-error");
+    document.getElementById("pass-input").value = "";
+    return;
+  }
+  hide("login-error");
+  currentMission = found[0];
+  hide("login-screen");
+  show("header", "flex");
+  show("loading", "flex");
+  document.getElementById("mission-pill").textContent = "📍 " + currentMission;
+  loadData();
 }
 
-function getMeta(mission) {
-  const records = missionData[mission] || [];
-  const last = records[records.length - 1];
-  const days = last ? daysSince(last.date) : null;
-  const alert = days === null || days > ALERT_DAYS;
-  return { records, last, days, alert };
+function doLogout() {
+  currentMission = null;
+  allData = {};
+  hide("header");
+  hide("dashboard");
+  hide("loading");
+  show("login-screen", "flex");
+  document.getElementById("pass-input").value = "";
 }
 
-function loadSample() {
-  // Convert sample format to full format
-  MISSIONS.forEach(m => {
-    missionData[m] = (SAMPLE[m] || []).map(r => ({
-      date: r.date, adults: r.a, adultsVisit: r.av,
-      children: r.c, childrenVisit: r.cv, decisions: r.df
-    }));
-  });
-  document.getElementById("demo-badge").style.display = "block";
-  showDashboard();
-}
-
-function loadCSV() {
+// ─── DATA LOADING ───
+function loadData() {
+  const timeout = setTimeout(() => useSample(), 5000);
   fetch(CSV_URL)
     .then(r => { if (!r.ok) throw new Error(); return r.text(); })
     .then(text => {
+      clearTimeout(timeout);
       const lines = text.split("\n").filter(l => l.trim());
       if (lines.length < 2) throw new Error("empty");
 
-      MISSIONS.forEach(m => { missionData[m] = []; });
+      const missions = Object.keys(MISSION_KEYS);
+      missions.forEach(m => { allData[m] = []; });
 
       for (let i = 1; i < lines.length; i++) {
-        // Handle quoted CSV fields
         const cols = lines[i].match(/(".*?"|[^,]+)(?=,|$)/g) || lines[i].split(",");
         const clean = cols.map(c => c.replace(/^"|"$/g,"").trim());
-        const mission = clean[0];
-        const date = parseDate(clean[1]);
+        const mission      = clean[0];
+        const date         = parseDate(clean[1]);
         const adults       = parseInt(clean[2]) || 0;
         const adultsVisit  = parseInt(clean[3]) || 0;
         const children     = parseInt(clean[4]) || 0;
         const childrenVisit= parseInt(clean[5]) || 0;
         const decisions    = parseInt(clean[6]) || 0;
-        if (mission && missionData[mission] !== undefined && date) {
-          missionData[mission].push({ date, adults, adultsVisit, children, childrenVisit, decisions });
+        if (mission && allData[mission] !== undefined && date) {
+          allData[mission].push({ date, adults, adultsVisit, children, childrenVisit, decisions });
         }
       }
-      MISSIONS.forEach(m => { missionData[m].sort((a,b) => a.date - b.date); });
-      showDashboard();
+      missions.forEach(m => { allData[m].sort((a,b) => a.date - b.date); });
+      renderDashboard(false);
     })
-    .catch(() => loadSample());
+    .catch(() => { clearTimeout(timeout); useSample(); });
 }
 
-function showDashboard() {
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("main").style.display = "flex";
-  renderList();
-  updateAlertBadge();
-}
-
-function updateAlertBadge() {
-  const count = MISSIONS.filter(m => getMeta(m).alert).length;
-  const badge = document.getElementById("alert-badge");
-  if (count > 0) {
-    badge.style.display = "block";
-    badge.textContent = `⚠️ ${count} misión${count > 1 ? "es" : ""} sin registrar (+14 días)`;
-  }
-}
-
-function renderList() {
-  const query = document.getElementById("search").value.toLowerCase();
-  const container = document.getElementById("left");
-  container.innerHTML = "";
-
-  MISSIONS.filter(m => m.toLowerCase().includes(query)).forEach(mission => {
-    const { records, last, days, alert } = getMeta(mission);
-    const isSel = selectedMission === mission;
-
-    const card = document.createElement("div");
-    card.className = "mission-card" + (isSel ? " selected" : "") + (alert && !isSel ? " alert-card" : "");
-    card.innerHTML = `
-      <div class="card-top">
-        <div class="card-name">${mission}</div>
-        <div class="card-badge ${alert ? "badge-warn" : "badge-ok"}">
-          ${alert ? (days !== null ? `${days}d sin reg.` : "Sin registros") : `Hace ${days}d`}
-        </div>
-      </div>
-      <div class="card-last">${last ? "Último: " + fmtDate(last.date) : "Sin registros aún"}</div>
-      <div class="card-count">${records.length} registro${records.length !== 1 ? "s" : ""} en total</div>
-    `;
-    card.onclick = () => {
-      selectedMission = (selectedMission === mission) ? null : mission;
-      renderList();
-      renderDetail();
-    };
-    container.appendChild(card);
+function useSample() {
+  Object.entries(SAMPLE).forEach(([m, rows]) => {
+    allData[m] = rows.map(r => ({
+      date: r.date, adults: r.a, adultsVisit: r.av,
+      children: r.c, childrenVisit: r.cv, decisions: r.df
+    }));
   });
+  renderDashboard(true);
 }
 
-function renderDetail() {
-  const placeholder = document.getElementById("placeholder");
-  const detail = document.getElementById("detail");
+// ─── RENDER ───
+function renderDashboard(isDemo) {
+  hide("loading");
+  show("dashboard", "flex");
+  document.getElementById("demo-banner").style.display = isDemo ? "block" : "none";
 
-  if (!selectedMission) {
-    placeholder.style.display = "flex";
-    detail.style.display = "none";
-    return;
-  }
+  const records = allData[currentMission] || [];
+  const last    = records[records.length - 1];
+  const days    = last ? daysSince(last.date) : null;
+  const alert   = days === null || days > ALERT_DAYS;
 
-  placeholder.style.display = "none";
-  detail.style.display = "block";
+  // Status card
+  const card  = document.getElementById("status-card");
+  const label = document.getElementById("status-label");
+  card.className  = alert ? "warn" : "ok";
+  label.className = alert ? "warn" : "ok";
+  label.textContent = alert
+    ? (days !== null ? `⚠️ Llevan ${days} días sin registrar` : "⚠️ Sin registros aún")
+    : `✅ Al día · último registro hace ${days} día${days !== 1 ? "s" : ""}`;
+  document.getElementById("status-meta").textContent =
+    `${records.length} registro${records.length !== 1 ? "s" : ""} en total · Primer registro: ${records[0] ? fmtDate(records[0].date) : "—"}`;
 
-  const { records, last, days, alert } = getMeta(selectedMission);
-
-  document.getElementById("detail-title").textContent = selectedMission;
-  document.getElementById("detail-sub").textContent =
-    `${records.length} registros · Primer registro: ${records[0] ? fmtDate(records[0].date) : "—"}`;
-
-  const statusEl = document.getElementById("detail-status");
-  statusEl.className = "detail-status " + (alert ? "status-warn" : "status-ok");
-  statusEl.textContent = alert
-    ? (days !== null ? `⚠️ ${days} días sin registrar` : "⚠️ Sin registros aún")
-    : `✅ Al día · hace ${days} días`;
-
-  // KPI grid
+  // KPIs
   const kpiGrid = document.getElementById("kpi-grid");
   if (last) {
     kpiGrid.style.display = "grid";
     kpiGrid.innerHTML = [
-      { icon:"👥", label:"Adultos",         val: last.adults       },
-      { icon:"🙋", label:"Vis. Adultos",    val: last.adultsVisit  },
-      { icon:"🧒", label:"Niños",           val: last.children     },
-      { icon:"👦", label:"Vis. Niños",      val: last.childrenVisit},
-      { icon:"✝️", label:"Decisiones de fe",val: last.decisions    },
+      { icon:"👥", label:"Adultos",          val: last.adults        },
+      { icon:"🙋", label:"Vis. Adultos",     val: last.adultsVisit   },
+      { icon:"🧒", label:"Niños",            val: last.children      },
+      { icon:"👦", label:"Vis. Niños",       val: last.childrenVisit },
+      { icon:"✝️", label:"Decisiones de fe", val: last.decisions     },
     ].map(k => `
       <div class="kpi-card">
         <div class="kpi-icon">${k.icon}</div>
         <div class="kpi-value">${k.val}</div>
         <div class="kpi-label">${k.label}</div>
         <div class="kpi-note">último registro</div>
-      </div>
-    `).join("");
+      </div>`).join("");
   } else {
     kpiGrid.style.display = "none";
   }
 
   // Table
-  const emptyEl = document.getElementById("history-empty");
-  const tableWrap = document.getElementById("table-wrap");
-  const tbody = document.getElementById("table-body");
-
   if (records.length === 0) {
-    emptyEl.style.display = "block";
-    tableWrap.style.display = "none";
+    show("history-empty"); hide("table-wrap");
   } else {
-    emptyEl.style.display = "none";
-    tableWrap.style.display = "block";
-    tbody.innerHTML = [...records].reverse().map((rec, i) => {
-      const isLatest = i === 0;
-      return `
-        <tr class="${isLatest ? "latest-row" : ""}">
-          <td style="font-weight:${isLatest ? 600 : 400}">
-            ${fmtDate(rec.date)}
-            ${isLatest ? '<span class="latest-tag">último</span>' : ""}
-          </td>
-          <td>${rec.adults}</td>
-          <td>${rec.adultsVisit}</td>
-          <td>${rec.children}</td>
-          <td>${rec.childrenVisit}</td>
-          <td>${rec.decisions > 0 ? `<span class="decision-val">${rec.decisions}</span>` : rec.decisions}</td>
-        </tr>
-      `;
-    }).join("");
+    hide("history-empty"); show("table-wrap");
+    document.getElementById("table-body").innerHTML =
+      [...records].reverse().map(function(rec, i) {
+        var isLatest = i === 0;
+        var latestTag = isLatest ? '<span class="latest-tag">\u00FAltimo</span>' : "";
+        var decCell = rec.decisions > 0
+          ? '<span class="decision-val">' + rec.decisions + "</span>"
+          : String(rec.decisions);
+        return '<tr class="' + (isLatest ? "latest-row" : "") + '">'
+          + '<td style="font-weight:' + (isLatest ? 600 : 400) + '">'
+          + fmtDate(rec.date) + " " + latestTag + "</td>"
+          + "<td>" + rec.adults + "</td>"
+          + "<td>" + rec.adultsVisit + "</td>"
+          + "<td>" + rec.children + "</td>"
+          + "<td>" + rec.childrenVisit + "</td>"
+          + "<td>" + decCell + "</td>"
+          + "</tr>";
+      }).join("")
   }
 }
-
-// Init
-const timeout = setTimeout(loadSample, 5000);
-fetch(CSV_URL, { method: "HEAD" })
-  .then(() => { clearTimeout(timeout); loadCSV(); })
-  .catch(() => { clearTimeout(timeout); loadSample(); });
 </script>
 </body>
 </html>
