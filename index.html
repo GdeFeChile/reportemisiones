@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generación de Fe · Misiones</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    #header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+      border-bottom: 1px solid #1e2435;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    #header-left { display: flex; align-items: center; gap: 12px; }
+    #logo {
+      width: 40px; height: 40px; border-radius: 10px; object-fit: contain;
+    }
+    #logo-fallback {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, #4f8ef7, #7c5cfc);
+      display: none; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    #org-name { font-size: 17px; font-weight: 700; }
+    #org-sub  { font-size: 11px; color: #6b7280; margin-top: 1px; }
+    #header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    #demo-badge {
+      background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 8px; padding: 4px 11px; font-size: 11px; color: #fbbf24; display: none;
+    }
+    #alert-badge {
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 4px 11px; font-size: 12px; color: #f87171;
+      font-weight: 600; display: none;
+    }
+    #search {
+      background: #1a1f2e; border: 1px solid #2a3048; border-radius: 8px;
+      padding: 6px 12px; color: #e8eaf0; font-size: 13px; outline: none; width: 155px;
+    }
+
+    /* LOADING */
+    #loading {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #6b7280; gap: 12px;
+      font-size: 15px;
+    }
+    #loading span { font-size: 32px; }
+
+    /* MAIN LAYOUT */
+    #main {
+      display: none; flex: 1; overflow: hidden;
+    }
+
+    /* LEFT PANEL */
+    #left {
+      width: 270px; min-width: 220px;
+      border-right: 1px solid #1e2435;
+      overflow-y: auto; padding: 12px; flex-shrink: 0;
+    }
+    .mission-card {
+      border-radius: 12px; padding: 11px 13px; margin-bottom: 6px;
+      cursor: pointer; background: #131825; border: 1px solid #1e2435;
+      transition: all 0.15s;
+    }
+    .mission-card:hover { border-color: #2a3560; }
+    .mission-card.selected {
+      background: linear-gradient(135deg, #1e2f52, #1a2545);
+      border-color: #4f8ef7;
+    }
+    .mission-card.alert-card { border-color: rgba(239,68,68,0.25); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-name { font-weight: 600; font-size: 13px; }
+    .card-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+      margin-left: 6px; white-space: nowrap;
+    }
+    .badge-ok   { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-warn { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .card-last  { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .card-count { font-size: 11px; color: #4b5568; margin-top: 2px; }
+
+    /* RIGHT PANEL */
+    #right {
+      flex: 1; overflow-y: auto; padding: 22px 26px;
+    }
+    #placeholder {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; color: #4b5568; gap: 14px;
+    }
+    #placeholder span { font-size: 44px; }
+    #placeholder p    { font-size: 15px; }
+
+    #detail { display: none; }
+
+    #detail-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+    }
+    #detail-title { font-size: 22px; font-weight: 700; }
+    #detail-sub   { font-size: 12px; color: #6b7280; margin-top: 3px; }
+    #detail-status {
+      padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    }
+    .status-ok   { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    .status-warn { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+    /* KPI grid */
+    #kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px; margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: #131825; border: 1px solid #1e2435;
+      border-radius: 12px; padding: 13px 14px;
+    }
+    .kpi-icon  { font-size: 17px; margin-bottom: 5px; }
+    .kpi-value { font-size: 22px; font-weight: 700; }
+    .kpi-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .kpi-note  { font-size: 10px; color: #4b5568; }
+
+    /* History table */
+    #history-box {
+      background: #131825; border: 1px solid #1e2435;
+      border-radius: 14px; overflow: hidden;
+    }
+    #history-title {
+      padding: 12px 18px; border-bottom: 1px solid #1e2435;
+      font-size: 13px; font-weight: 600; color: #9ca3af;
+    }
+    #history-empty {
+      padding: 40px; text-align: center; color: #6b7280;
+    }
+    #table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      padding: 9px 14px; background: #0f1117;
+      color: #6b7280; font-weight: 600; white-space: nowrap;
+      border-bottom: 1px solid #1e2435;
+    }
+    th:first-child { text-align: left; }
+    th:not(:first-child) { text-align: center; }
+    td { padding: 9px 14px; border-bottom: 1px solid #1a1f2e; }
+    td:not(:first-child) { text-align: center; }
+    tr.latest-row { background: rgba(79,142,247,0.05); }
+    .latest-tag {
+      margin-left: 8px; font-size: 10px;
+      background: rgba(79,142,247,0.2); color: #4f8ef7;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .decision-val { color: #fbbf24; font-weight: 600; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3048; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="header-left">
+    <img id="logo" src="logo.png" alt="Generación de Fe"
+         onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex'"/>
+    <div id="logo-fallback">🕊️</div>
+    <div>
+      <div id="org-name">Generación de Fe</div>
+      <div id="org-sub">Seguimiento de registros por misión</div>
+    </div>
+  </div>
+  <div id="header-right">
+    <div id="demo-badge">📊 Vista previa · datos de ejemplo</div>
+    <div id="alert-badge"></div>
+    <input id="search" type="text" placeholder="Buscar misión..." oninput="renderList()"/>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading"><span>⏳</span> Cargando datos...</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="left"></div>
+  <div id="right">
+    <div id="placeholder">
+      <span>👈</span>
+      <p>Selecciona una misión para ver su historial</p>
+    </div>
+    <div id="detail">
+      <div id="detail-header">
+        <div>
+          <div id="detail-title"></div>
+          <div id="detail-sub"></div>
+        </div>
+        <div id="detail-status"></div>
+      </div>
+      <div id="kpi-grid"></div>
+      <div id="history-box">
+        <div id="history-title">📋 Historial completo de registros</div>
+        <div id="history-empty" style="display:none">No hay registros para esta misión aún.</div>
+        <div id="table-wrap" style="display:none">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Adultos</th>
+                <th>Vis. Adultos</th>
+                <th>Niños</th>
+                <th>Vis. Niños</th>
+                <th>Dec. Fe</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
+const SHEET_GID = "1575814348";
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+const ALERT_DAYS = 14;
+const MISSIONS = [
+  "La Florida","Huechuraba","San Bernardo","La Pintana",
+  "Padre Hurtado","Lican Ray","Mendoza","Bío Bío",
+  "Villa Alemana","Temuco","Chillán"
+];
+
+// Sample data for fallback
+function dAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d; }
+const SAMPLE = {
+  "La Florida":    [{date:dAgo(90),a:42,av:3,c:18,cv:2,df:1},{date:dAgo(76),a:45,av:4,c:20,cv:3,df:2},{date:dAgo(62),a:47,av:3,c:19,cv:1,df:0},{date:dAgo(48),a:53,av:6,c:24,cv:4,df:3},{date:dAgo(7),a:55,av:7,c:25,cv:3,df:2}],
+  "Huechuraba":    [{date:dAgo(80),a:28,av:2,c:10,cv:1,df:0},{date:dAgo(52),a:29,av:1,c:11,cv:0,df:0},{date:dAgo(5),a:34,av:4,c:14,cv:2,df:1}],
+  "San Bernardo":  [{date:dAgo(95),a:20,av:1,c:8,cv:0,df:0},{date:dAgo(60),a:25,av:2,c:10,cv:1,df:0},{date:dAgo(18),a:27,av:3,c:11,cv:2,df:1}],
+  "La Pintana":    [{date:dAgo(70),a:35,av:3,c:15,cv:2,df:2},{date:dAgo(42),a:33,av:2,c:14,cv:1,df:0},{date:dAgo(20),a:40,av:5,c:17,cv:3,df:2}],
+  "Padre Hurtado": [{date:dAgo(88),a:18,av:1,c:7,cv:0,df:0},{date:dAgo(74),a:20,av:2,c:8,cv:1,df:1},{date:dAgo(30),a:22,av:2,c:9,cv:1,df:0}],
+  "Lican Ray":     [{date:dAgo(100),a:15,av:1,c:5,cv:0,df:0},{date:dAgo(79),a:17,av:2,c:6,cv:1,df:1},{date:dAgo(51),a:16,av:1,c:6,cv:0,df:0}],
+  "Mendoza":       [{date:dAgo(65),a:30,av:3,c:12,cv:1,df:1},{date:dAgo(44),a:32,av:4,c:13,cv:2,df:2},{date:dAgo(10),a:35,av:3,c:14,cv:1,df:1}],
+  "Bío Bío":       [{date:dAgo(72),a:24,av:2,c:9,cv:1,df:0},{date:dAgo(40),a:28,av:2,c:11,cv:1,df:0},{date:dAgo(3),a:30,av:4,c:12,cv:2,df:2}],
+  "Villa Alemana": [{date:dAgo(85),a:19,av:1,c:7,cv:0,df:0},{date:dAgo(64),a:21,av:2,c:8,cv:1,df:1}],
+  "Temuco":        [{date:dAgo(77),a:36,av:3,c:15,cv:2,df:1},{date:dAgo(49),a:35,av:2,c:14,cv:1,df:0},{date:dAgo(12),a:40,av:5,c:17,cv:3,df:1}],
+  "Chillán":       [{date:dAgo(91),a:22,av:2,c:8,cv:1,df:0},{date:dAgo(68),a:24,av:2,c:9,cv:1,df:1},{date:dAgo(45),a:26,av:3,c:10,cv:2,df:0}],
+};
+
+let missionData = {};
+let selectedMission = null;
+
+function parseDate(str) {
+  if (!str) return null;
+  const p = str.trim().split(/[-\/]/);
+  if (p.length !== 3) return null;
+  const d = new Date(`${p[2]}-${p[1].padStart(2,"0")}-${p[0].padStart(2,"0")}`);
+  return isNaN(d) ? null : d;
+}
+
+function fmtDate(d) {
+  if (!d) return "—";
+  return d.toLocaleDateString("es-CL", { day:"2-digit", month:"short", year:"numeric" });
+}
+
+function daysSince(d) {
+  if (!d) return null;
+  return Math.floor((new Date() - d) / 86400000);
+}
+
+function getMeta(mission) {
+  const records = missionData[mission] || [];
+  const last = records[records.length - 1];
+  const days = last ? daysSince(last.date) : null;
+  const alert = days === null || days > ALERT_DAYS;
+  return { records, last, days, alert };
+}
+
+function loadSample() {
+  // Convert sample format to full format
+  MISSIONS.forEach(m => {
+    missionData[m] = (SAMPLE[m] || []).map(r => ({
+      date: r.date, adults: r.a, adultsVisit: r.av,
+      children: r.c, childrenVisit: r.cv, decisions: r.df
+    }));
+  });
+  document.getElementById("demo-badge").style.display = "block";
+  showDashboard();
+}
+
+function loadCSV() {
+  fetch(CSV_URL)
+    .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+    .then(text => {
+      const lines = text.split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("empty");
+
+      MISSIONS.forEach(m => { missionData[m] = []; });
+
+      for (let i = 1; i < lines.length; i++) {
+        // Handle quoted CSV fields
+        const cols = lines[i].match(/(".*?"|[^,]+)(?=,|$)/g) || lines[i].split(",");
+        const clean = cols.map(c => c.replace(/^"|"$/g,"").trim());
+        const mission = clean[0];
+        const date = parseDate(clean[1]);
+        const adults       = parseInt(clean[2]) || 0;
+        const adultsVisit  = parseInt(clean[3]) || 0;
+        const children     = parseInt(clean[4]) || 0;
+        const childrenVisit= parseInt(clean[5]) || 0;
+        const decisions    = parseInt(clean[6]) || 0;
+        if (mission && missionData[mission] !== undefined && date) {
+          missionData[mission].push({ date, adults, adultsVisit, children, childrenVisit, decisions });
+        }
+      }
+      MISSIONS.forEach(m => { missionData[m].sort((a,b) => a.date - b.date); });
+      showDashboard();
+    })
+    .catch(() => loadSample());
+}
+
+function showDashboard() {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("main").style.display = "flex";
+  renderList();
+  updateAlertBadge();
+}
+
+function updateAlertBadge() {
+  const count = MISSIONS.filter(m => getMeta(m).alert).length;
+  const badge = document.getElementById("alert-badge");
+  if (count > 0) {
+    badge.style.display = "block";
+    badge.textContent = `⚠️ ${count} misión${count > 1 ? "es" : ""} sin registrar (+14 días)`;
+  }
+}
+
+function renderList() {
+  const query = document.getElementById("search").value.toLowerCase();
+  const container = document.getElementById("left");
+  container.innerHTML = "";
+
+  MISSIONS.filter(m => m.toLowerCase().includes(query)).forEach(mission => {
+    const { records, last, days, alert } = getMeta(mission);
+    const isSel = selectedMission === mission;
+
+    const card = document.createElement("div");
+    card.className = "mission-card" + (isSel ? " selected" : "") + (alert && !isSel ? " alert-card" : "");
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-name">${mission}</div>
+        <div class="card-badge ${alert ? "badge-warn" : "badge-ok"}">
+          ${alert ? (days !== null ? `${days}d sin reg.` : "Sin registros") : `Hace ${days}d`}
+        </div>
+      </div>
+      <div class="card-last">${last ? "Último: " + fmtDate(last.date) : "Sin registros aún"}</div>
+      <div class="card-count">${records.length} registro${records.length !== 1 ? "s" : ""} en total</div>
+    `;
+    card.onclick = () => {
+      selectedMission = (selectedMission === mission) ? null : mission;
+      renderList();
+      renderDetail();
+    };
+    container.appendChild(card);
+  });
+}
+
+function renderDetail() {
+  const placeholder = document.getElementById("placeholder");
+  const detail = document.getElementById("detail");
+
+  if (!selectedMission) {
+    placeholder.style.display = "flex";
+    detail.style.display = "none";
+    return;
+  }
+
+  placeholder.style.display = "none";
+  detail.style.display = "block";
+
+  const { records, last, days, alert } = getMeta(selectedMission);
+
+  document.getElementById("detail-title").textContent = selectedMission;
+  document.getElementById("detail-sub").textContent =
+    `${records.length} registros · Primer registro: ${records[0] ? fmtDate(records[0].date) : "—"}`;
+
+  const statusEl = document.getElementById("detail-status");
+  statusEl.className = "detail-status " + (alert ? "status-warn" : "status-ok");
+  statusEl.textContent = alert
+    ? (days !== null ? `⚠️ ${days} días sin registrar` : "⚠️ Sin registros aún")
+    : `✅ Al día · hace ${days} días`;
+
+  // KPI grid
+  const kpiGrid = document.getElementById("kpi-grid");
+  if (last) {
+    kpiGrid.style.display = "grid";
+    kpiGrid.innerHTML = [
+      { icon:"👥", label:"Adultos",         val: last.adults       },
+      { icon:"🙋", label:"Vis. Adultos",    val: last.adultsVisit  },
+      { icon:"🧒", label:"Niños",           val: last.children     },
+      { icon:"👦", label:"Vis. Niños",      val: last.childrenVisit},
+      { icon:"✝️", label:"Decisiones de fe",val: last.decisions    },
+    ].map(k => `
+      <div class="kpi-card">
+        <div class="kpi-icon">${k.icon}</div>
+        <div class="kpi-value">${k.val}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-note">último registro</div>
+      </div>
+    `).join("");
+  } else {
+    kpiGrid.style.display = "none";
+  }
+
+  // Table
+  const emptyEl = document.getElementById("history-empty");
+  const tableWrap = document.getElementById("table-wrap");
+  const tbody = document.getElementById("table-body");
+
+  if (records.length === 0) {
+    emptyEl.style.display = "block";
+    tableWrap.style.display = "none";
+  } else {
+    emptyEl.style.display = "none";
+    tableWrap.style.display = "block";
+    tbody.innerHTML = [...records].reverse().map((rec, i) => {
+      const isLatest = i === 0;
+      return `
+        <tr class="${isLatest ? "latest-row" : ""}">
+          <td style="font-weight:${isLatest ? 600 : 400}">
+            ${fmtDate(rec.date)}
+            ${isLatest ? '<span class="latest-tag">último</span>' : ""}
+          </td>
+          <td>${rec.adults}</td>
+          <td>${rec.adultsVisit}</td>
+          <td>${rec.children}</td>
+          <td>${rec.childrenVisit}</td>
+          <td>${rec.decisions > 0 ? `<span class="decision-val">${rec.decisions}</span>` : rec.decisions}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+}
+
+// Init
+const timeout = setTimeout(loadSample, 5000);
+fetch(CSV_URL, { method: "HEAD" })
+  .then(() => { clearTimeout(timeout); loadCSV(); })
+  .catch(() => { clearTimeout(timeout); loadSample(); });
+</script>
+</body>
+</html>
