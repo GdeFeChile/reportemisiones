@@ -256,7 +256,38 @@ const MISSION_KEYS = {
 const SHEET_ID  = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
 const SHEET_GID = "1575814348";
 const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-const ALERT_DAYS = 14;
+// Returns the most recent past Sunday (or Saturday) as a Date at midnight
+function lastWeekday(dayOfWeek) {
+  // dayOfWeek: 0=Sunday, 6=Saturday
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var diff = (today.getDay() - dayOfWeek + 7) % 7;
+  if (diff === 0) diff = 0; // today counts if it's that day
+  var d = new Date(today);
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
+function isUpToDate(mission, records) {
+  if (!records || records.length === 0) return false;
+  var lastSunday = lastWeekday(0);
+
+  if (mission === "La Florida") {
+    var lastSaturday = lastWeekday(6);
+    // Must have a record on last Saturday AND last Sunday
+    var hasSat = records.some(function(r) { return sameDay(r.date, lastSaturday); });
+    var hasSun = records.some(function(r) { return sameDay(r.date, lastSunday); });
+    return hasSat && hasSun;
+  } else {
+    return records.some(function(r) { return sameDay(r.date, lastSunday); });
+  }
+}
+
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
+}
 
 // Sample fallback
 function dAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d; }
@@ -374,8 +405,7 @@ function renderDashboard(isDemo) {
 
   const records = allData[currentMission] || [];
   const last    = records[records.length - 1];
-  const days    = last ? daysSince(last.date) : null;
-  const alert   = days === null || days > ALERT_DAYS;
+  const alert   = !isUpToDate(currentMission, records);
 
   // Status card
   const card  = document.getElementById("status-card");
@@ -383,10 +413,15 @@ function renderDashboard(isDemo) {
   card.className  = alert ? "warn" : "ok";
   label.className = alert ? "warn" : "ok";
   label.textContent = alert
-    ? (days !== null ? `⚠️ Llevan ${days} días sin registrar` : "⚠️ Sin registros aún")
-    : `✅ Al día · último registro hace ${days} día${days !== 1 ? "s" : ""}`;
+    ? (records.length === 0 ? "⚠️ Sin registros aún" : "⚠️ Falta registrar este fin de semana")
+    : "✅ Al día · fin de semana registrado";
+  var lastSun = lastWeekday(0);
+  var lastSat = lastWeekday(6);
+  var nextCheck = currentMission === "La Florida"
+    ? "Requiere registro del s\u00e1bado " + fmtDate(lastSat) + " y domingo " + fmtDate(lastSun)
+    : "Requiere registro del domingo " + fmtDate(lastSun);
   document.getElementById("status-meta").textContent =
-    `${records.length} registro${records.length !== 1 ? "s" : ""} en total · Primer registro: ${records[0] ? fmtDate(records[0].date) : "—"}`;
+    records.length + " registro" + (records.length !== 1 ? "s" : "") + " en total · " + nextCheck;
 
   // KPIs
   const kpiGrid = document.getElementById("kpi-grid");
