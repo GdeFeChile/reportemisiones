@@ -236,9 +236,6 @@
 </div>
 
 <script>
-// ─────────────────────────────────────────
-// CLAVES POR MISIÓN — cambia estas claves antes de publicar
-// ─────────────────────────────────────────
 const MISSION_KEYS = {
   "La Florida":    "florida348",
   "Huechuraba":    "huechuraba117",
@@ -257,31 +254,15 @@ const MISSION_KEYS = {
 const SHEET_ID  = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
 const SHEET_GID = "1575814348";
 const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-// Returns the most recent past Sunday (or Saturday) as a Date at midnight
+
 function lastWeekday(dayOfWeek) {
-  // dayOfWeek: 0=Sunday, 6=Saturday
   var today = new Date();
   today.setHours(0,0,0,0);
   var diff = (today.getDay() - dayOfWeek + 7) % 7;
-  if (diff === 0) diff = 0; // today counts if it's that day
+  if (diff === 0) diff = 0;
   var d = new Date(today);
   d.setDate(d.getDate() - diff);
   return d;
-}
-
-function isUpToDate(mission, records) {
-  if (!records || records.length === 0) return false;
-  var lastSunday = lastWeekday(0);
-
-  if (mission === "La Florida") {
-    var lastSaturday = lastWeekday(6);
-    // Must have a record on last Saturday AND last Sunday
-    var hasSat = records.some(function(r) { return sameDay(r.date, lastSaturday); });
-    var hasSun = records.some(function(r) { return sameDay(r.date, lastSunday); });
-    return hasSat && hasSun;
-  } else {
-    return records.some(function(r) { return sameDay(r.date, lastSunday); });
-  }
 }
 
 function sameDay(a, b) {
@@ -290,7 +271,14 @@ function sameDay(a, b) {
     && a.getDate() === b.getDate();
 }
 
-// Sample fallback
+// ★ FIX: Todas las misiones solo exigen domingo.
+//   Si La Florida registró el sábado, aparece en historial, pero no es obligatorio.
+function isUpToDate(mission, records) {
+  if (!records || records.length === 0) return false;
+  var lastSunday = lastWeekday(0);
+  return records.some(function(r) { return sameDay(r.date, lastSunday); });
+}
+
 function dAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d; }
 const SAMPLE = {
   "La Florida":    [{date:dAgo(90),a:42,av:3,c:18,cv:2,df:1},{date:dAgo(76),a:45,av:4,c:20,cv:3,df:2},{date:dAgo(62),a:47,av:3,c:19,cv:1,df:0},{date:dAgo(48),a:53,av:6,c:24,cv:4,df:3},{date:dAgo(7),a:55,av:7,c:25,cv:3,df:2}],
@@ -309,12 +297,10 @@ const SAMPLE = {
 let currentMission = null;
 let allData = {};
 
-// ─── HELPERS ───
 function parseDate(str) {
   if (!str) return null;
   const p = str.trim().split(/[-\/]/);
   if (p.length !== 3) return null;
-  // Use local time to avoid UTC offset shifting the day
   const day   = parseInt(p[0], 10);
   const month = parseInt(p[1], 10) - 1;
   const year  = parseInt(p[2], 10);
@@ -332,7 +318,6 @@ function daysSince(d) {
 function show(id, type="block") { document.getElementById(id).style.display = type; }
 function hide(id)               { document.getElementById(id).style.display = "none"; }
 
-// ─── LOGIN ───
 function doLogin() {
   const val = document.getElementById("pass-input").value.trim();
   const found = Object.entries(MISSION_KEYS).find(([, pwd]) => pwd === val);
@@ -364,7 +349,6 @@ function doLogout() {
   document.getElementById("pass-input").value = "";
 }
 
-// ─── DATA LOADING ───
 function loadData() {
   const timeout = setTimeout(() => useSample(), 5000);
   fetch(CSV_URL)
@@ -407,7 +391,6 @@ function useSample() {
   renderDashboard(true);
 }
 
-// ─── RENDER ───
 function renderDashboard(isDemo) {
   hide("loading");
   show("dashboard", "flex");
@@ -422,7 +405,6 @@ function renderDashboard(isDemo) {
   const last    = records[records.length - 1];
   const alert   = !isUpToDate(currentMission, records);
 
-  // Status card
   const card  = document.getElementById("status-card");
   const label = document.getElementById("status-label");
   card.className  = alert ? "warn" : "ok";
@@ -432,13 +414,15 @@ function renderDashboard(isDemo) {
     : "✅ Al día · fin de semana registrado";
   var lastSun = lastWeekday(0);
   var lastSat = lastWeekday(6);
+
+  // ★ Texto actualizado
   var nextCheck = currentMission === "La Florida"
-    ? "Requiere registro del s\u00e1bado " + fmtDate(lastSat) + " y domingo " + fmtDate(lastSun)
+    ? "Requiere domingo " + fmtDate(lastSun) + " · sábado " + fmtDate(lastSat) + " solo si hubo reunión"
     : "Requiere registro del domingo " + fmtDate(lastSun);
+
   document.getElementById("status-meta").textContent =
     records.length + " registro" + (records.length !== 1 ? "s" : "") + " en total · " + nextCheck;
 
-  // KPIs
   const kpiGrid = document.getElementById("kpi-grid");
   if (last) {
     kpiGrid.style.display = "grid";
@@ -459,7 +443,6 @@ function renderDashboard(isDemo) {
     kpiGrid.style.display = "none";
   }
 
-  // Table
   if (records.length === 0) {
     show("history-empty"); hide("table-wrap");
   } else {
@@ -484,7 +467,6 @@ function renderDashboard(isDemo) {
   }
 }
 
-// ─── ADMIN VIEW ───
 function renderAdmin() {
   var MISSIONS_LIST = [
     "La Florida","Huechuraba","San Bernardo","La Pintana",
@@ -509,10 +491,8 @@ function renderAdmin() {
     }
   });
 
-  // Build admin HTML
   var html = "";
 
-  // Summary cards
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">';
   html += '<div style="background:#131825;border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:18px 20px;">';
   html += '<div style="font-size:32px;font-weight:700;color:#f87171;">' + pending.length + '</div>';
@@ -524,11 +504,10 @@ function renderAdmin() {
   html += '</div>';
   html += '</div>';
 
-  // Reference dates
+  // ★ Texto actualizado en admin
   html += '<div style="font-size:12px;color:#6b7280;margin-bottom:16px;">📅 Período: domingo ' + fmtDate(lastSun);
-  html += ' · La Florida incluye sábado ' + fmtDate(lastSat) + '</div>';
+  html += ' · La Florida: sábado ' + fmtDate(lastSat) + ' solo si hubo reunión</div>';
 
-  // Pending missions
   if (pending.length > 0) {
     html += '<div style="background:#131825;border:1px solid rgba(239,68,68,0.2);border-radius:14px;overflow:hidden;margin-bottom:16px;">';
     html += '<div style="padding:12px 18px;border-bottom:1px solid #1e2435;font-size:13px;font-weight:600;color:#f87171;">⚠️ Pendientes de registrar</div>';
@@ -544,7 +523,6 @@ function renderAdmin() {
     html += '</div>';
   }
 
-  // Up to date missions
   if (upToDate.length > 0) {
     html += '<div style="background:#131825;border:1px solid rgba(34,197,94,0.15);border-radius:14px;overflow:hidden;">';
     html += '<div style="padding:12px 18px;border-bottom:1px solid #1e2435;font-size:13px;font-weight:600;color:#4ade80;">✅ Al día</div>';
@@ -561,7 +539,6 @@ function renderAdmin() {
   document.getElementById("history-box").style.display = "none";
   document.getElementById("status-card").style.display = "none";
   var dashInner = document.getElementById("dash-inner");
-  // Remove old admin view if exists
   var old = document.getElementById("admin-view");
   if (old) old.remove();
   var div = document.createElement("div");
@@ -569,7 +546,6 @@ function renderAdmin() {
   div.innerHTML = html;
   dashInner.appendChild(div);
 }
-
 </script>
 </body>
 </html>
