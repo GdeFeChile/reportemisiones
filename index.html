@@ -251,6 +251,7 @@ const MISSION_KEYS = {
   "Villa Alemana": "villaalemana265",
   "Temuco":        "temuco452",
   "Chillán":       "chillan939",
+  "admin":         "admin",
 };
 
 const SHEET_ID  = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
@@ -345,7 +346,11 @@ function doLogin() {
   hide("login-screen");
   show("header", "flex");
   show("loading", "flex");
-  document.getElementById("mission-pill").textContent = "📍 " + currentMission;
+  if (currentMission === "admin") {
+    document.getElementById("mission-pill").textContent = "🔐 Administrador";
+  } else {
+    document.getElementById("mission-pill").textContent = "📍 " + currentMission;
+  }
   loadData();
 }
 
@@ -407,6 +412,11 @@ function renderDashboard(isDemo) {
   hide("loading");
   show("dashboard", "flex");
   document.getElementById("demo-banner").style.display = isDemo ? "block" : "none";
+
+  if (currentMission === "admin") {
+    renderAdmin();
+    return;
+  }
 
   const records = allData[currentMission] || [];
   const last    = records[records.length - 1];
@@ -473,6 +483,93 @@ function renderDashboard(isDemo) {
       }).join("")
   }
 }
+
+// ─── ADMIN VIEW ───
+function renderAdmin() {
+  var MISSIONS_LIST = [
+    "La Florida","Huechuraba","San Bernardo","La Pintana",
+    "Padre Hurtado","Lican Ray","Mendoza","Bío Bío",
+    "Villa Alemana","Temuco","Chillán"
+  ];
+
+  var lastSun = lastWeekday(0);
+  var lastSat = lastWeekday(6);
+
+  var pending = [];
+  var upToDate = [];
+
+  MISSIONS_LIST.forEach(function(m) {
+    var records = allData[m] || [];
+    var ok = isUpToDate(m, records);
+    var last = records[records.length - 1];
+    if (ok) {
+      upToDate.push({ name: m, last: last });
+    } else {
+      pending.push({ name: m, last: last });
+    }
+  });
+
+  // Build admin HTML
+  var html = "";
+
+  // Summary cards
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">';
+  html += '<div style="background:#131825;border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:18px 20px;">';
+  html += '<div style="font-size:32px;font-weight:700;color:#f87171;">' + pending.length + '</div>';
+  html += '<div style="font-size:13px;color:#9ca3af;margin-top:4px;">Misiones sin registrar</div>';
+  html += '</div>';
+  html += '<div style="background:#131825;border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:18px 20px;">';
+  html += '<div style="font-size:32px;font-weight:700;color:#4ade80;">' + upToDate.length + '</div>';
+  html += '<div style="font-size:13px;color:#9ca3af;margin-top:4px;">Misiones al día</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Reference dates
+  html += '<div style="font-size:12px;color:#6b7280;margin-bottom:16px;">📅 Período: domingo ' + fmtDate(lastSun);
+  html += ' · La Florida incluye sábado ' + fmtDate(lastSat) + '</div>';
+
+  // Pending missions
+  if (pending.length > 0) {
+    html += '<div style="background:#131825;border:1px solid rgba(239,68,68,0.2);border-radius:14px;overflow:hidden;margin-bottom:16px;">';
+    html += '<div style="padding:12px 18px;border-bottom:1px solid #1e2435;font-size:13px;font-weight:600;color:#f87171;">⚠️ Pendientes de registrar</div>';
+    pending.forEach(function(m) {
+      var daysAgoTxt = m.last
+        ? "Último: " + fmtDate(m.last.date)
+        : "Sin registros";
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #1a1f2e;">';
+      html += '<div style="font-weight:600;font-size:14px;">' + m.name + '</div>';
+      html += '<div style="font-size:12px;color:#6b7280;">' + daysAgoTxt + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Up to date missions
+  if (upToDate.length > 0) {
+    html += '<div style="background:#131825;border:1px solid rgba(34,197,94,0.15);border-radius:14px;overflow:hidden;">';
+    html += '<div style="padding:12px 18px;border-bottom:1px solid #1e2435;font-size:13px;font-weight:600;color:#4ade80;">✅ Al día</div>';
+    upToDate.forEach(function(m) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #1a1f2e;">';
+      html += '<div style="font-weight:600;font-size:14px;">' + m.name + '</div>';
+      html += '<div style="font-size:12px;color:#6b7280;">' + (m.last ? fmtDate(m.last.date) : "—") + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  document.getElementById("kpi-grid").style.display = "none";
+  document.getElementById("history-box").style.display = "none";
+  document.getElementById("status-card").style.display = "none";
+  var dashInner = document.getElementById("dash-inner");
+  // Remove old admin view if exists
+  var old = document.getElementById("admin-view");
+  if (old) old.remove();
+  var div = document.createElement("div");
+  div.id = "admin-view";
+  div.innerHTML = html;
+  dashInner.appendChild(div);
+}
+
 </script>
 </body>
 </html>
