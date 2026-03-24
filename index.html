@@ -237,7 +237,7 @@
 
 <script>
 // ─────────────────────────────────────────
-// CLAVES POR MISIÓN — cambia estas claves antes de publicar
+// CLAVES POR MISIÓN
 // ─────────────────────────────────────────
 const MISSION_KEYS = {
   "La Florida":    "florida348",
@@ -257,31 +257,22 @@ const MISSION_KEYS = {
 const SHEET_ID  = "1H3K5kRTe1ntcme8NylN9Ei6tYsvzvQ41_xLX0pMQe9M";
 const SHEET_GID = "1575814348";
 const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-// Returns the most recent past Sunday (or Saturday) as a Date at midnight
+
 function lastWeekday(dayOfWeek) {
-  // dayOfWeek: 0=Sunday, 6=Saturday
   var today = new Date();
   today.setHours(0,0,0,0);
   var diff = (today.getDay() - dayOfWeek + 7) % 7;
-  if (diff === 0) diff = 0; // today counts if it's that day
+  if (diff === 0) diff = 0;
   var d = new Date(today);
   d.setDate(d.getDate() - diff);
   return d;
 }
 
-// ★ CAMBIO 1: La Florida solo exige domingo. Sábado es opcional.
+// ★ CAMBIO 1: Solo exige domingo para todas las misiones
 function isUpToDate(mission, records) {
   if (!records || records.length === 0) return false;
   var lastSunday = lastWeekday(0);
-
-  if (mission === "La Florida") {
-    // Solo domingo es obligatorio
-    // Sábado es opcional (a veces hay eventos y no se registra)
-    var hasSun = records.some(function(r) { return sameDay(r.date, lastSunday); });
-    return hasSun;
-  } else {
-    return records.some(function(r) { return sameDay(r.date, lastSunday); });
-  }
+  return records.some(function(r) { return sameDay(r.date, lastSunday); });
 }
 
 function sameDay(a, b) {
@@ -314,7 +305,6 @@ function parseDate(str) {
   if (!str) return null;
   const p = str.trim().split(/[-\/]/);
   if (p.length !== 3) return null;
-  // Use local time to avoid UTC offset shifting the day
   const day   = parseInt(p[0], 10);
   const month = parseInt(p[1], 10) - 1;
   const year  = parseInt(p[2], 10);
@@ -413,10 +403,18 @@ function renderDashboard(isDemo) {
   show("dashboard", "flex");
   document.getElementById("demo-banner").style.display = isDemo ? "block" : "none";
 
+  // ★ FIX: Limpiar vista admin si quedó de un login anterior
+  var oldAdmin = document.getElementById("admin-view");
+  if (oldAdmin) oldAdmin.remove();
+
   if (currentMission === "admin") {
     renderAdmin();
     return;
   }
+
+  // ★ FIX: Restaurar elementos que admin pudo haber ocultado
+  document.getElementById("status-card").style.display = "flex";
+  document.getElementById("history-box").style.display = "block";
 
   const records = allData[currentMission] || [];
   const last    = records[records.length - 1];
